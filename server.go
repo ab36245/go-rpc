@@ -122,15 +122,20 @@ func (s *Server) doInput() {
 			}
 			s.calls[cid] = call
 			go handler(call)
+			log.Trace().Msg("after spawning handler")
 		} else {
 			log.Trace().Msg("new flag not set")
 			call = s.calls[cid]
 			if call == nil {
-				log.Trace().Uint("cid", cid).Msg("unknown cid")
+				log.Error().Uint("cid", cid).Msg("unknown cid")
 				break
 			}
 		}
-		call.recv(flags, mpd)
+		if len(mpd.Bytes()) > 0 {
+			log.Trace().Msg("sending message to handler")
+			call.recv(flags, mpd)
+			log.Trace().Msg("back from sending message to handler")
+		}
 	}
 	log.Trace().Msg("stopping")
 	s.closing = true
